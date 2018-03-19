@@ -9,6 +9,7 @@ function createLayout(graph, options) {
   var iterations = typeof options.iterations === 'number' ? options.iterations : 500;
   var saveEach = typeof options.saveEach === 'number' ? options.saveEach : 5;
   var outDir = typeof options.outDir === 'string' ? options.outDir : './data';
+  var verbose = typeof options.verbose === 'boolean' ? options.verbose : true;
   var is2d = options.is2d ? true : false;
   var coordinatesPerRecord = is2d ? 2 : 3;
   var intSize = 4;
@@ -23,6 +24,12 @@ function createLayout(graph, options) {
     run: run,
     lastIteration: getLastIteration
   };
+
+  function log(message) {
+    if (verbose) {
+      console.log(message)
+    }
+  }
 
   function getLastIteration() {
     var files = fs.readdirSync(outDir);
@@ -49,7 +56,7 @@ function createLayout(graph, options) {
     }
 
     for (var step = lastIteration + 1; step < iterations; ++step) {
-      console.log('Step ' + step);
+      log('Step ' + step);
       layout.step();
       if (step % saveEach === 0) {
         saveIteration(step);
@@ -60,7 +67,7 @@ function createLayout(graph, options) {
 
   function initLayout(iteration) {
     var lastName = path.join(outDir, iteration + '.bin');
-    console.log('Attempting to resume layout from ' + lastName);
+    log('Attempting to resume layout from ' + lastName);
     var buf = fs.readFileSync(lastName);
     var idx = 0;
     graph.forEachNode(initPosition);
@@ -80,15 +87,15 @@ function createLayout(graph, options) {
   }
 
   function printLastIterationHelp() {
-    console.log('The ' + outDir + ' already has ' + lastIteration + ' saved iterations.');
-    console.log('* If you want to overwite existing work call `layout.run(true)`');
-    console.log('* If you want to perform more iterations set higher value for `options.iterations`');
+    log('The ' + outDir + ' already has ' + lastIteration + ' saved iterations.');
+    log('* If you want to overwite existing work call `layout.run(true)`');
+    log('* If you want to perform more iterations set higher value for `options.iterations`');
   }
 
   function saveIteration(name) {
     var fname = path.join(outDir, name + '.bin');
 
-    console.log("Saving: ", fname);
+    log("Saving: ", fname);
     var nodesLength = graph.getNodesCount();
     var buf = new Buffer(nodesLength * intSize * coordinatesPerRecord);
     var i = 0;
